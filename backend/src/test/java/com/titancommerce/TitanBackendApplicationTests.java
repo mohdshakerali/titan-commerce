@@ -50,7 +50,8 @@ class TitanBackendApplicationTests {
     private MockMvc mockMvc;
 
     @BeforeEach
-    void cleanCustomerData() {
+    void cleanTestData() {
+        productRepository.deleteAll();
         customerRepository.deleteAll();
     }
 
@@ -263,6 +264,65 @@ class TitanBackendApplicationTests {
                 .andExpect(jsonPath("$.id").value(customer.getId()))
                 .andExpect(jsonPath("$.email").value("jwt-test@titan.com"))
                 .andExpect(jsonPath("$.name").value("Titan Test Customer"));
+    }
+
+    // 11. Retrieve all products
+
+    @Test
+    void shouldRetrieveAllProducts() throws Exception {
+
+        productRepository.save(new Product(
+                "Laptop",
+                "Business laptop",
+                new BigDecimal("65000.00")
+        ));
+
+        productRepository.save(new Product(
+                "Keyboard",
+                "Mechanical keyboard",
+                new BigDecimal("2500.00")
+        ));
+
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").exists());
+    }
+
+    // 12. Retrieve product by ID
+
+    @Test
+    void shouldRetrieveProductById() throws Exception {
+
+        Product product = productRepository.save(new Product(
+                "Monitor",
+                "27-inch display",
+                new BigDecimal("18000.00")
+        ));
+
+        mockMvc.perform(get("/api/products/" + product.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(product.getId()))
+                .andExpect(jsonPath("$.name").value("Monitor"))
+                .andExpect(jsonPath("$.price").value(18000.00));
+    }
+
+    // 13. Return 404 for non-existing product
+
+    @Test
+    void shouldReturnNotFoundForNonExistingProduct() throws Exception {
+
+        mockMvc.perform(get("/api/products/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    // 14. Allow public product catalogue access
+
+    @Test
+    void shouldAllowPublicProductCatalogueAccess() throws Exception {
+
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk());
     }
 
     // Helper method to generate a signed JWT for testing
