@@ -1,0 +1,15 @@
+﻿# Environment variables and secrets
+.env
+
+# Local editor settings
+.vscode/
+
+# Java / Maven build output
+**/target/
+
+# Node.js dependencies and build output
+**/node_modules/
+**/dist/
+
+# Log files
+*.log
