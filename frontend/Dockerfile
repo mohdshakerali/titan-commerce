@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve the static files using Nginx
-FROM nginx:alpine
+FROM nginx:1.30.6-alpine3.24-slim
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
