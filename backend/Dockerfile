@@ -15,11 +15,12 @@ COPY src ./src
 RUN ./mvnw package -DskipTests
 
 # Stage 2: Run the packaged application
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine-3.24
 
 WORKDIR /app
 
-RUN useradd --system --uid 10001 appuser
+# Create a non-root application user
+RUN adduser -S -D -H -u 10001 appuser
 
 COPY --from=build /app/target/*.jar app.jar
 
