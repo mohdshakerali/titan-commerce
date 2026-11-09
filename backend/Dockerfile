@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 
 # Stage 1: Build the Spring Boot application
 FROM eclipse-temurin:21-jdk AS build
@@ -8,11 +9,13 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-RUN chmod +x mvnw && ./mvnw dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2 \
+    chmod +x mvnw && ./mvnw dependency:go-offline
 
 COPY src ./src
 
-RUN ./mvnw package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw package -DskipTests
 
 # Stage 2: Run the packaged application
 FROM eclipse-temurin:21-jre-alpine-3.24
