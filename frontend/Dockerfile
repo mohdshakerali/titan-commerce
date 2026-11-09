@@ -1,17 +1,19 @@
-# Stage 1: Build the react application
+# syntax=docker/dockerfile:1
+
+# Stage 1: Build the React application
 FROM node:22-alpine AS build
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
 
 RUN npm run build
 
-# Stage 2: Serve the static files using Nginx
+# Stage 2: Serve static files using Nginx
 FROM nginx:1.30.6-alpine3.24-slim
 
 COPY --from=build /app/dist /usr/share/nginx/html
