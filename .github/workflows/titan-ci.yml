@@ -106,7 +106,10 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          tags: titan-commerce-backend:ci
+          tags: titan-commerce-backend:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
           push: false
           cache-from: type=gha,scope=titan-backend
           cache-to: type=gha,scope=titan-backend,mode=max,ignore-error=true
@@ -116,7 +119,10 @@ jobs:
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
-          tags: titan-commerce-frontend:ci
+          tags: titan-commerce-frontend:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
           push: false
           cache-from: type=gha,scope=titan-frontend
           cache-to: type=gha,scope=titan-frontend,mode=max,ignore-error=true
