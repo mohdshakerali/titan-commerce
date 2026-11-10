@@ -13,3 +13,6 @@
 
 # Log files
 *.log
+
+# Local database backups
+/backups/
