@@ -136,40 +136,78 @@ All three containers carry Docker Compose labels identifying:
 - Working directory: TITAN repository
 - Configuration file: docker-compose.yml
 
-### 3.2 Application Communication
 
-The expected application request flow is:
 
-1. Customer accesses the storefront through the host's
-   published HTTP port.
+### 3.2 Application Communication and Network Segmentation
+
+The application uses two Docker Compose networks to separate frontend traffic from database communication.
+
+| Network | Connected Services | Configuration |
+|---|---|---|
+| `frontend` | Frontend, Backend | Bridge network |
+| `backend_db` | Backend, PostgreSQL | Internal bridge network |
+
+The expected request flow is:
+
+1. Customer accesses the application through the host's published HTTP port `80`.
 2. Nginx serves the React frontend.
-3. Nginx forwards API requests to the Spring Boot backend.
-4. Spring Boot communicates with PostgreSQL.
+3. Nginx forwards API requests to the backend using the Compose service name `backend` on port `8080`.
+4. The backend connects to PostgreSQL using `postgres:5432` over the internal `backend_db` network.
 5. PostgreSQL returns database results to the backend.
 
-The backend connects to PostgreSQL using the Compose
-service name rather than a hardcoded container IP.
+Network and exposure details:
+
+- Frontend publishes host port `80`.
+- Backend exposes port `8080` to other containers but does not publish it directly to the host.
+- PostgreSQL listens on port `5432` within the Docker network and is not published to the host.
+- The backend connects to both networks, allowing it to communicate with the frontend and PostgreSQL.
+- The `backend_db` network is configured as internal, isolating database traffic from external network connectivity.
+
+
 
 ### 3.3 Architecture Diagram
 
 ```mermaid
 flowchart TB
     USER["Customer Browser"]
+    PORT["Host Port 80"]
 
-    subgraph HOST["Windows 11 Host"]
-        PORT["Published Port 80"]
-        subgraph DOCKER["Docker Desktop / WSL2"]
-            subgraph NETWORK["titan-commerce_default"]
-                NGINX["Nginx Frontend<br/>Port 80"]
-                API["Spring Boot Backend<br/>Port 8080"]
-                DB[("PostgreSQL 17<br/>Port 5432")]
-            end
-            VOL[("titan-postgres-data")]
-        end
+    subgraph DOCKER["Docker Desktop / WSL2"]
+        FRONTEND["Nginx Frontend<br/>Port 80"]
+        BACKEND["Spring Boot Backend<br/>Port 8080"]
+        POSTGRES[("PostgreSQL 17<br/>Port 5432")]
+        VOLUME[("titan-postgres-data")]
     end
 
     USER --> PORT
-    PORT --> NGINX
-    NGINX -->|"API Reverse Proxy"| API
-    API -->|"postgres:5432"| DB
-    DB --- VOL
+    PORT --> FRONTEND
+    FRONTEND -->|"frontend network"| BACKEND
+    BACKEND -->|"backend_db network (internal)"| POSTGRES
+    POSTGRES --- VOLUME
+```
+
+The backend is connected to both Docker networks. The frontend communicates with the backend through the `frontend` network, while database communication remains isolated through the internal `backend_db` network.
+
+
+
+### 3.4 Health Checks and Startup Dependencies
+
+Docker Compose uses health checks to determine whether PostgreSQL and the backend are ready to accept requests.
+
+| Service | Health Check | Interval | Timeout | Retries |
+|---|---|---:|---:|---:|
+| PostgreSQL | `pg_isready` | 10s | 5s | 5 |
+| Backend | Spring Boot Actuator `/actuator/health` | 15s | 5s | 3 |
+| Frontend | No independent health check configured | — | — | — |
+
+The backend depends on PostgreSQL with:
+
+`condition: service_healthy`
+
+The frontend depends on the backend with:
+
+`condition: service_healthy`
+
+This ensures that dependent services wait for the configured health checks to succeed during startup.
+
+These dependency conditions do not provide continuous dependency monitoring or automatic recovery after startup.
