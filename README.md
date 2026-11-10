@@ -1,150 +1,288 @@
-Project TITAN — Cloud-Native E-Commerce Platform
 
-Building, deploying, securing, and operating a production-inspired cloud-native platform using modern DevOps and cloud engineering practices.
+# Project TITAN — Cloud-Native E-Commerce Platform
 
-Project Overview
+A hands-on DevOps and cloud engineering project focused on building, deploying, securing, and operating a real-world-inspired e-commerce platform.
 
-Project TITAN is a hands-on DevOps engineering project based on a fictional e-commerce company.
+**Repository:** `mohdshakerali/titan-commerce`  
+**Project type:** DevOps / Cloud Engineering Portfolio  
+**Current development phase:** Container Engineering Completed — Infrastructure Automation Next  
+**Development approach:** Local-first, cost-conscious engineering
+
+---
+
+## 1. Project Overview
+
+Project TITAN is a fictional B2C e-commerce platform developed to demonstrate practical software delivery and DevOps engineering.
 
-The platform simulates a real-world engineering environment where customers can browse products, place orders, and track order status.
+The project explores how an engineering team builds and operates an application platform, including:
 
-The objective is to design and implement the infrastructure, automation, deployment workflows, security controls, and observability required to operate a reliable application platform.
+- Application development and integration
+- Containerization and image optimization
+- CI/CD automation
+- Container networking and persistent storage
+- Container security hardening
+- Image distribution through a container registry
+- Reliability troubleshooting and recovery
+- Infrastructure automation and cloud deployment planning
 
-This project focuses on practical engineering, troubleshooting, automation, infrastructure as code, and operational readiness rather than simply learning individual tools.
+The focus is on practical implementation, troubleshooting, operational evidence, and engineering documentation rather than installing tools without a clear purpose.
 
-Business Scenario
+## 2. Current Application Architecture
 
-Imagine an e-commerce company experiencing business growth.
+TITAN currently consists of three primary services:
 
-Its engineering team needs a platform that can:
+| Component | Technology | Responsibility |
+|---|---|---|
+| Frontend | React, TypeScript, Vite, Nginx | Customer-facing storefront |
+| Backend | Java 21, Spring Boot | REST API and application logic |
+| Database | PostgreSQL 17 | Persistent application data |
 
-Run application services reliably.
+### Request flow
 
-Automate application builds and deployments.
+```text
+Customer Browser / Postman
+          |
+          v
+   Nginx Frontend
+      Port 80
+          |
+          v
+   Spring Boot API
+      Port 8080
+          |
+          v
+      PostgreSQL
+      Port 5432
+```
 
-Provision infrastructure consistently.
+Docker Compose manages the three services.
 
-Secure application workloads and cloud resources.
+Two Docker networks provide service segmentation:
 
-Monitor application health and performance.
+- `frontend`: Nginx and the backend.
+- `backend_db`: Backend and PostgreSQL; configured as an internal network.
 
-Detect, investigate, and recover from failures.
+Only the frontend publishes a host port. The backend and database are not directly published to the host.
 
-Manage infrastructure and operational costs.
+PostgreSQL uses the external persistent Docker volume `titan-postgres-data`.
 
-Project TITAN explores how a DevOps engineering team can address these requirements.
+## 3. Technology Stack
 
-Engineering Objectives
+| Area | Technologies |
+|---|---|
+| Application frontend | React, TypeScript, Vite |
+| Application backend | Java 21, Spring Boot |
+| Database | PostgreSQL |
+| Containerization | Docker, Docker Compose |
+| Container registry | GitHub Container Registry |
+| CI | GitHub Actions |
+| Image analysis | Trivy |
+| Source control | Git, GitHub |
+| Operating environment | Windows 11, Docker Desktop, WSL2 |
+| Cloud platform planned | AWS |
+| Infrastructure as Code planned | Terraform |
+| Configuration management planned | Ansible |
+| Orchestration planned | Kubernetes |
+| Monitoring planned | Prometheus, Grafana |
 
-Build a working multi-service application.
+Technologies listed as planned are not represented as completed implementations.
 
-Containerize application components using Docker.
+## 4. Engineering Progress
 
-Automate infrastructure provisioning using Terraform.
+### M0 — Project Foundation
+Project definition, business requirements, architecture and repository foundation.
 
-Configure systems using Linux, Bash, and Ansible.
+### M1 — Application Engineering
+Spring Boot backend, React frontend, PostgreSQL integration, customer authentication and product catalogue.
 
-Deploy workloads using Kubernetes.
+### M2 — Docker Engineering
+The container engineering implementation and acceptance work covers:
 
-Package applications using Helm and Kustomize.
+- Docker runtime architecture
+- Image optimization and build-context management
+- BuildKit caching and CI image builds
+- Container operations
+- Network segmentation
+- PostgreSQL persistence and backup/restore
+- Container security hardening
+- Docker Compose deployment configuration
+- GHCR image publishing and retrieval
+- Reliability incident simulations
+- Engineering acceptance and operational handover
 
-Implement CI pipelines using GitHub Actions.
+M2 implementation evidence is maintained in GitHub issues, pull requests and the documentation directory.
 
-Explore GitOps deployment workflows using Argo CD.
+## 5. Running TITAN Locally
 
-Integrate security scanning and code quality checks.
+### Prerequisites
 
-Implement monitoring, logging, and operational dashboards.
+- Git
+- Docker Desktop
+- Docker Compose
+- Windows 11 with Docker's Linux container environment
 
-Document architecture, troubleshooting procedures, and engineering decisions.
+### Configuration
 
-Apply cost-conscious AWS architecture and resource management practices.
+Clone the repository and enter its directory.
 
-Planned Technology Stack
+For a fresh local setup, copy the example environment file:
 
-AreaTechnologiesCloudAWSOperating SystemLinux / UbuntuVersion ControlGit and GitHubContainersDocker, Docker ComposeInfrastructure as CodeTerraformConfiguration ManagementAnsibleCI/CDGitHub ActionsContainer OrchestrationKubernetesKubernetes PackagingHelm, KustomizeGitOpsArgo CDSecurityTrivy, CheckovCode QualitySonarQubeObservabilityPrometheus, GrafanaApplicationTo be finalized during implementation 
+```powershell
+Copy-Item .env.example .env
+```
 
-Technologies will be introduced as the architecture and project requirements evolve.
+Edit `.env` and provide unique local values for:
 
-Architecture Approach
+- `POSTGRES_PASSWORD`
+- `TITAN_JWT_SECRET`
 
-The project will follow a local-first development approach, with carefully selected AWS integration labs.
+Do not commit the actual `.env` file or share its values.
 
-The platform is expected to include:
+Existing installations should retain their existing `.env` file rather than overwrite it.
 
-Frontend application
+Create the external PostgreSQL volume if it does not already exist:
 
-Backend API
+```powershell
+docker volume create titan-postgres-data
+```
 
-Database
+### Start the application
 
-Background order-processing component
+```powershell
+docker compose config -q
+docker compose up -d --build
+```
 
-Containerized application services
+Compose waits for PostgreSQL readiness before starting the backend, and for backend health before starting the frontend.
 
-Automated build and deployment workflows
+### Access the application
 
-Infrastructure and configuration automation
+Storefront:
 
-Monitoring and logging components
+`http://localhost`
 
-The architecture will evolve incrementally as each engineering milestone is completed.
+Product API:
 
-Engineering Principles
+`http://localhost/api/products`
 
-Automation First — Minimize repetitive manual operations.
+Expected API response:
 
-Infrastructure as Code — Manage infrastructure through version-controlled configuration.
+`HTTP 200 OK`
 
-Security by Design — Apply least privilege, secure configurations, and secrets management.
+### Useful operational commands
 
-Reliability — Include health checks, failure handling, and recovery procedures.
+```powershell
+docker compose ps
+docker compose logs -f
+docker compose restart backend
+docker compose stop
+docker compose start
+docker compose down
+```
 
-Observability — Make application and infrastructure behaviour measurable.
+The external PostgreSQL volume is retained by normal Compose shutdown and container recreation. Never use volume-removal commands as routine cleanup.
 
-Cost Awareness — Avoid unnecessary infrastructure and continuously evaluate resource costs.
+## 6. Container Image Distribution
 
-Documentation — Record architecture decisions, troubleshooting, and operational procedures.
+TITAN backend and frontend images have been published to GitHub Container Registry.
 
-Project Development Status
+Backend:
 
-Current Phase: Project Foundation
+`ghcr.io/mohdshakerali/titan-commerce-backend`
 
-Current Milestone: M0 — Project Foundation and Business Definition
+Frontend:
 
-Implementation has not started yet. Technologies and architecture listed above represent the planned engineering direction, not completed deliverables.
+`ghcr.io/mohdshakerali/titan-commerce-frontend`
 
-Progress will be documented as the project develops.
+The M2-09 workflow demonstrated:
 
-Repository Structure
+- Source-revision-based image tagging
+- `latest` tags
+- Registry authentication
+- Image publishing and retrieval
+- OCI manifest inspection
+- Digest-based image identification
 
-The repository will grow incrementally as new components are implemented.
+The registry images are separately documented. The current local Compose configuration continues to build from the repository's Dockerfiles.
 
-titan-commerce/ ├── README.md ├── app/ ├── docker/ ├── terraform/ ├── ansible/ ├── kubernetes/ ├── helm/ ├── gitops/ ├── security/ ├── observability/ ├── docs/ └── .github/ └── workflows/ 
+## 7. CI Pipeline
 
-Security and Cost Management
+GitHub Actions provides automated validation for:
 
-Never commit credentials, access keys, passwords, tokens, or sensitive information.
+1. Backend tests using Java 21 and PostgreSQL.
+2. Frontend dependency installation, linting and production build.
+3. Backend and frontend Docker image builds.
 
-Use secure configuration and secrets-management practices.
+The Docker build job depends on successful backend and frontend validation.
 
-Review infrastructure plans before provisioning resources.
+The current workflow validates and builds images. It does not automatically publish them to GHCR or deploy the application.
 
-Verify AWS pricing and credit eligibility before cloud deployment.
+## 8. Security and Reliability
 
-Remove temporary resources after completing cloud labs.
+Completed container engineering work includes:
 
-Document infrastructure costs and teardown procedures.
+- Non-root backend execution using UID 10001.
+- Backend Linux capability removal.
+- No-new-privileges protection.
+- Separate frontend and database network paths.
+- Runtime health checks and startup dependency conditions.
+- External PostgreSQL persistent storage.
+- Environment-based secret configuration.
+- Trivy image vulnerability assessment and documented remediation decisions.
+- Controlled failure simulations and troubleshooting documentation.
 
-Project Philosophy
+The PostgreSQL image still has documented upstream vulnerability findings. The project does not claim that every container image is vulnerability-free.
 
-The goal is not to install every DevOps tool or deploy every AWS service.
+## 9. Engineering Documentation
 
-The goal is to understand why each technology is required, how it fits into a real engineering environment, how to implement it, and how to troubleshoot it when things go wrong.
+Important technical documentation is maintained in `docs/`.
 
-Build it. Automate it. Secure it. Monitor it. Break it. Fix it. Document it.
+| Document | Location |
+|---|---|
+| Docker runtime architecture | `docs/architecture/docker-runtime.md` |
+| Container network architecture | `docs/architecture/container-networking.md` |
+| Image optimization | `docs/architecture/docker-image-optimization.md` |
+| CI/CD pipeline architecture | `docs/architecture/ci-cd-pipeline.md` |
+| Container operations | `docs/operations/container-operations-runbook.md` |
+| PostgreSQL backup and restore | `docs/operations/postgres-backup-restore.md` |
+| Compose deployment configuration | `docs/operations/compose-deployment-configuration.md` |
+| Image publishing and retrieval | `docs/operations/container-image-publishing.md` |
+| Reliability incident runbook | `docs/operations/container-reliability-runbook.md` |
+| Container security review | `docs/security/container-security-review.md` |
 
-Project: TITAN Commerce
-Type: Cloud / DevOps Engineering Portfolio
-Status: In Development
-Repository Visibility: Private
+## 10. Cost and Infrastructure Strategy
+
+TITAN follows a local-first development approach.
+
+Docker engineering, image publishing and local reliability testing are performed without requiring paid AWS resources.
+
+Future cloud implementation will evaluate:
+
+- AWS infrastructure requirements
+- Terraform-managed resources
+- Container registry integration with Amazon ECR
+- IAM permissions and secrets management
+- Kubernetes deployment
+- Infrastructure costs and teardown procedures
+
+Cloud resources will only be provisioned after evaluating cost and available credits.
+
+## 11. Next Engineering Phases
+
+The planned engineering direction includes:
+
+- M3 — Linux, Bash and Ansible
+- Terraform infrastructure automation
+- AWS infrastructure implementation
+- Kubernetes orchestration
+- Helm and Kustomize
+- GitOps deployment
+- Monitoring and observability
+
+These are future development activities, not completed M2 deliverables.
+
+## 12. Engineering Philosophy
+
+**Build it. Automate it. Secure it. Monitor it. Break it. Fix it. Document it.**
+
+TITAN is intended to demonstrate how engineering technologies work together in a practical delivery environment, with a focus on operational understanding, reproducibility, reliability and cost awareness.
