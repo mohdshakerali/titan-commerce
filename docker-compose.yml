@@ -2,6 +2,8 @@ services:
   postgres:
     image: postgres:17
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_DB: titan_commerce
       POSTGRES_USER: titan_user
@@ -20,6 +22,10 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/titan_commerce
       SPRING_DATASOURCE_USERNAME: titan_user
@@ -38,6 +44,8 @@ services:
     build:
       context: ./frontend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
     depends_on:
