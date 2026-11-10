@@ -20,6 +20,9 @@ RUN --mount=type=cache,target=/root/.m2 \
 # Stage 2: Run the packaged application
 FROM eclipse-temurin:21-jre-alpine-3.24
 
+# Apply the Alpine security fix for zlib
+RUN apk upgrade --no-cache zlib
+
 WORKDIR /app
 
 # Create a non-root application user

@@ -16,6 +16,8 @@ RUN npm run build
 # Stage 2: Serve static files using Nginx
 FROM nginx:1.30.6-alpine3.24-slim
 
+RUN apk upgrade --no-cache zlib
+
 COPY --from=build /app/dist /usr/share/nginx/html
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
