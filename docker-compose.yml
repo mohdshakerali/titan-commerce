@@ -1,3 +1,4 @@
+
 services:
   postgres:
     image: postgres:17
@@ -5,8 +6,8 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      POSTGRES_DB: titan_commerce
-      POSTGRES_USER: titan_user
+      POSTGRES_DB: ${POSTGRES_DB:-titan_commerce}
+      POSTGRES_USER: ${POSTGRES_USER:-titan_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -27,8 +28,8 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/titan_commerce
-      SPRING_DATASOURCE_USERNAME: titan_user
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/${POSTGRES_DB:-titan_commerce}"
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-titan_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       TITAN_JWT_SECRET: ${TITAN_JWT_SECRET:?Set TITAN_JWT_SECRET in .env}
     depends_on:
@@ -36,6 +37,12 @@ services:
         condition: service_healthy
     expose:
       - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - frontend
       - backend_db
@@ -47,9 +54,10 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      - "80:80"
+      - "${FRONTEND_PORT:-80}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - frontend
 
